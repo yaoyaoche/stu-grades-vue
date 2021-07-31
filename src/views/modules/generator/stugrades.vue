@@ -7,6 +7,7 @@
       <el-form-item>
         <el-button @click="getDataList()">查询</el-button>
         <el-button type="primary" @click="rank()">排名</el-button>
+        <el-button type="primary" icon="el-icon-download"  @click="exportExcel">导出excel</el-button>
         <el-button v-if="isAuth('generator:stugrades:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
         <el-button v-if="isAuth('generator:stugrades:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
       </el-form-item>
@@ -118,36 +119,6 @@
       this.getDataList()
     },
     methods: {
-      // // 求总分
-      // getsum () {
-      //   this.$http({
-      //     url: this.$http.adornUrl(`/generator/stugrades/update`),
-      //     method: 'post',
-      //     data: this.$http.adornData({
-      //       'id': this.dataList.id || undefined,
-      //       'name': this.dataList.name,
-      //       'chinese': this.dataList.chinese,
-      //       'maths': this.dataList.maths,
-      //       'english': this.dataList.english,
-      //       'sum': this.dataList.sum
-      //     })
-      //   }).then(({data}) => {
-      //     if (data && data.code === 0) {
-      //       this.dataList = data.sum
-      //       this.$message({
-      //         message: '操作成功',
-      //         type: 'success',
-      //         duration: 1500,
-      //         onClose: () => {
-      //           this.visible = false
-      //           this.$emit('refreshDataList')
-      //         }
-      //       })
-      //     } else {
-      //       this.$message.error(data.msg)
-      //     }
-      //   })
-      // },
       // 获取数据列表
       getDataList () {
         this.dataListLoading = true
@@ -197,6 +168,25 @@
         this.rankVisible = true
         this.$nextTick(() => {
           this.$refs.Rank.getrank()
+        })
+      },
+      // 导出excel
+      exportExcel () {
+        this.$http({
+          url: this.$http.adornUrl('/generator/stugrades/poiOut'),
+          method: 'post',
+          data: this.clueList,
+          responseType: 'blob'
+        }).then(res => {
+          const link = document.createElement('A')
+          let blob = new Blob([res.data], { type: 'multipary/form-data' })
+          link.style.display = 'none'
+          link.href = URL.createObjectURL(blob)
+          link.setAttribute('download', decodeURI('学生成绩表.xlsx'))
+          document.body.appendChild(link)
+          link.click()
+          document.body.removeChild(link)
+          console.log(res)
         })
       },
       // 删除
