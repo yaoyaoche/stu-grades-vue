@@ -5,11 +5,21 @@
         <el-input v-model="dataForm.key" placeholder="参数名" clearable></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button @click="getDataList()">查询</el-button>
-        <el-button type="primary" @click="rank()">排名</el-button>
-        <el-button type="primary" icon="el-icon-download"  @click="exportExcel">导出excel</el-button>
-        <el-button v-if="isAuth('generator:stugrades:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
-        <el-button v-if="isAuth('generator:stugrades:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
+        <el-row class="padding-10-0">
+          <el-button @click="getDataList()">查询</el-button>
+          <el-button type="primary" @click="rank()">排名</el-button>
+          <el-upload
+            :beforeUpload="beforeUpload"
+            :showUploadList="false"
+            :multiple="true"
+            :show-file-list="false"
+            class="upload-demo inline-block margin-right-10">
+            <el-button type="primary" icon="el-icon-upload"> 导入文件 </el-button>
+          </el-upload>
+          <el-button type="primary" icon="el-icon-download"  @click="exportExcel">导出excel</el-button>
+          <el-button v-if="isAuth('generator:stugrades:save')" type="primary" @click="addOrUpdateHandle()">新增</el-button>
+          <el-button v-if="isAuth('generator:stugrades:delete')" type="danger" @click="deleteHandle()" :disabled="dataListSelections.length <= 0">批量删除</el-button>
+        </el-row>
       </el-form-item>
     </el-form>
     <el-table
@@ -86,6 +96,12 @@
     <Rank v-if="rankVisible" ref="Rank"></Rank>
   </div>
 </template>
+
+<style>
+  .inline-block {
+    display: inline-block;
+  }
+</style>
 
 <script>
   import AddOrUpdate from './stugrades-add-or-update'
@@ -170,10 +186,29 @@
           this.$refs.Rank.getrank()
         })
       },
+      // 导入excel
+      beforeUpload (file) {
+        // let _this = this
+        console.log(file)
+        let formData = new FormData()
+        formData.append('file', file)
+        // let config = {
+        //   headers: {
+        //     'Content-Type': 'multipart/form-data'
+        //   }
+        // }
+        // 这里填写调用的后端Excel数据处理接口
+        this.$http({
+          url: this.$http.adornUrl('/generator/stugrades/excelin'),
+          method: 'post',
+          data: formData
+        })
+        this.$forceUpdate()
+      },
       // 导出excel
       exportExcel () {
         this.$http({
-          url: this.$http.adornUrl('/generator/stugrades/poiOut'),
+          url: this.$http.adornUrl('/generator/stugrades/excelout'),
           method: 'post',
           data: this.clueList,
           responseType: 'blob'
